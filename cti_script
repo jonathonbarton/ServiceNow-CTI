@@ -1,0 +1,103 @@
+function cti() {
+    // set the URL to null
+    var url = null;
+    
+    // set 'name' to sysparm_caller_name from...where? Didn't we just set the URL to null? I presume it's preserved somehow.
+    var name = sysparm_caller_name;
+    
+    // Added 'var' to 'eid' below - it appeared to be missing OOB.
+    var eid = sysparm_caller_id;
+    
+    // set 'phone' to the sysparm_caller_phone in the incoming URL.
+    var phone = sysparm_caller_phone;
+    
+    // grab the taskID from the URL if there is one.	
+    var taskID = sysparm_task_id;
+    
+    // grab the sysparm_query if there is one and put it in fQuery. In our application, there won't be one. 
+    var fQuery = sysparm_query;
+    
+    // in our application, since there is no sysparm_query, this IF statement will always trigger and set fQuery to ''.
+    if (fQuery == null)
+        fQuery = '';
+    
+    // in our use of cti.do we're not passing a view from Shoretel, so this var and the following if will trigger, and view will always be 'itil'. 
+    var view = sysparm_view;
+    if (view == null || view == '')
+        view = "itil";
+    
+    // Set the userID to null.
+    var userID = null;
+
+    // We're not using eid, so this won't trigger
+    if (eid != null && eid != '') {
+        userID = UserGetSysId("employee_number", eid);
+    }
+
+    // userID will be null, and we *might* pass the name, so this might trigger the function at the bottom which will return the name from sysparm_caller_name.
+    if (userID == null && name != null && name != '') {
+        userID = UserGetSysId("name", name);
+    }
+
+    // Ditto with the phone number - no userID, and we might pass sysparm_caller_phone which will trigger this.
+    if (userID == null && phone != null && phone != '') {
+        userID = UserGetSysId("phone", phone);
+    }
+    // userID will always be null. This IF will never trigger.
+    if (userID != null) {
+        var gr = new GlideRecord("call");
+        gr.addQuery("active", "true");
+        gr.addQuery("caller_id", userID);
+        gr.setWorkflow(false);
+        gr.query();
+        if (gr.next())
+            // This is the URL you arrive at if you right click New Call and open in a new tab.
+            url = "https://denovodev.service-now.com/new_call.do?sysparm_stack=new_call_list.do&sys_id=-1"
+        //url = "sys_user.do?sys_id=" + userID + "&sysparm_view=" + view;
+    } else {
+        if (taskID != null && taskID != '') {
+            //var task = new GlideRecord('incident');
+            //task.addQuery('number', taskID);
+            //task.query();
+            //if (task.next()) {
+            //if (typeof(sysparm_work_notes) != 'undefined')
+            //    task.work_notes.setJournalEntry(sysparm_work_notes);                       
+            //if (typeof(sysparm_priority) != 'undefined') 
+            //    task.priority = sysparm_priority;                       
+            //task.update();
+            //}
+            url = "https://denovodev.service-now.com/new_call.do?sysparm_stack=new_call_list.do&sys_id=-1"
+            //url = "task.do?sys_id=" + taskID + "&sysparm_view=" + view;            		
+        }
+    }
+    
+    //UserID will always be null - this IF will never trigger. 
+    if (userID != null) {
+        if (fQuery.length > 0)
+            fQuery += "^";
+        fQuery += "caller_id=" + userID;
+    }
+    if (url == null) {
+        //1) URL is set to null at the top of the script. 
+        //2) This is the URL that the SN Tech had me try. It delivers me to the New Call page UNLESS I use the URL straight out of the wiki page
+        // in that case it delivers me to incident.do - which is kinda "WTH?" because there is NO reference to incident.do left in this script! 
+        // she sent me an example using change, and that delivered me to a blank change page, too. but, again, if we add any sysparm variables to the URL, we go to incident.do... which...what?
+        url = "new_call.do?sys_id=-1";
+        //url = "incident.do?sys_id=-1";
+
+        if (fQuery != null) //We determined above that fQuery is always null. This IF will never trigger.
+            url += "&sysparm_query=" + fQuery;
+    }
+    answer = url;
+    return url; //send us to... the URL on line 79.
+}
+
+function UserGetSysId(field, value) {
+    var user = new GlideRecord("sys_user");
+    user.addQuery(field, value);
+    user.query();
+    if (user.next())
+        return user.sys_id;
+    else
+        return null;
+}

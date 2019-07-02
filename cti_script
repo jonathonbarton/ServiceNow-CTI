@@ -52,7 +52,7 @@ function cti() {
         gr.query();
         if (gr.next())
             // This is the URL you arrive at if you right click New Call and open in a new tab.
-            url = "https://denovodev.service-now.com/new_call.do?sysparm_stack=new_call_list.do&sys_id=-1"
+            url = "https://instanceName.service-now.com/new_call.do?sysparm_stack=new_call_list.do&sys_id=-1"
         //url = "sys_user.do?sys_id=" + userID + "&sysparm_view=" + view;
     } else {
         if (taskID != null && taskID != '') {
@@ -66,7 +66,7 @@ function cti() {
             //    task.priority = sysparm_priority;                       
             //task.update();
             //}
-            url = "https://denovodev.service-now.com/new_call.do?sysparm_stack=new_call_list.do&sys_id=-1"
+            url = "https://instanceName.service-now.com/new_call.do?sysparm_stack=new_call_list.do&sys_id=-1"
             //url = "task.do?sys_id=" + taskID + "&sysparm_view=" + view;            		
         }
     }
